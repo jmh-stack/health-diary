@@ -35,16 +35,18 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  // 1. 프로필 브라우저 자동 저장 (초기값 완전 공란)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('ironlog_profile');
     if (saved) return JSON.parse(saved);
-    return { name: '민우', gender: 'male', height: 178, weight: 74.5 };
+    return { name: '', gender: '', height: '', weight: '' }; 
   });
 
+  // 2. 통계 브라우저 자동 저장 (초기값 0으로 세팅)
   const [milestones, setMilestones] = useState<MilestoneStreak>(() => {
     const saved = localStorage.getItem('ironlog_milestones');
     if (saved) return JSON.parse(saved);
-    return { currentStreakDays: 5, weeklyGoalCompleted: 3, weeklyGoalTarget: 4 };
+    return { currentStreakDays: 0, weeklyGoalCompleted: 0, weeklyGoalTarget: 4 };
   });
 
   useEffect(() => {
@@ -83,7 +85,7 @@ export default function App() {
           <WorkoutView
             onCompleteWorkout={() => {
               const today = new Date().getDate();
-              // 오늘 운동 날짜 저장 로직 추가
+              // 오늘 운동 날짜 저장 로직 (실제 출석부에 도장 찍기)
               const savedDates = localStorage.getItem('ironlog_workout_dates');
               let datesArray = savedDates ? JSON.parse(savedDates) : [];
               if (!datesArray.includes(today)) {

@@ -16,19 +16,16 @@ interface RoutineViewProps {
 }
 
 export const RoutineView: React.FC<RoutineViewProps> = ({ onStartRoutine }) => {
+  // 루틴 기본값을 완전 비어있는 배열([])로 초기화
   const [routines, setRoutines] = useState<RoutineGroup[]>(() => {
     const saved = localStorage.getItem('ironlog_routines');
     if (saved) return JSON.parse(saved);
-    return [
-      { id: '1', title: '상체 메인 루틴', exercises: ['벤치프레스', '인클라인 덤벨 프레스'] },
-      { id: '2', title: '하체 & 어깨 루틴', exercises: ['스쿼트', '레그 프레스'] }
-    ];
+    return []; // 처음 켰을 때 루틴 0개
   });
 
-  // 메인 루틴 ID 관리 (기본값은 첫 번째 루틴)
   const [mainRoutineId, setMainRoutineId] = useState<string>(() => {
     const saved = localStorage.getItem('ironlog_main_routine_id');
-    return saved || '1';
+    return saved || '';
   });
 
   useEffect(() => {
@@ -47,14 +44,13 @@ export const RoutineView: React.FC<RoutineViewProps> = ({ onStartRoutine }) => {
     if (!newRoutineTitle.trim()) return;
     const newId = Date.now().toString();
     setRoutines(prev => [...prev, { id: newId, title: newRoutineTitle.trim(), exercises: [] }]);
-    // 루틴이 하나도 없었다면 새로 만든 것을 메인으로 자동 지정
     if (routines.length === 0) setMainRoutineId(newId);
     setNewRoutineTitle('');
   };
 
   const handleDeleteRoutine = (id: string) => {
     setRoutines(prev => prev.filter(r => r.id !== id));
-    if (mainRoutineId === id) setMainRoutineId(''); // 삭제된 루틴이 메인이었다면 초기화
+    if (mainRoutineId === id) setMainRoutineId(''); 
   };
 
   const handleAddExerciseToRoutine = (routineId: string) => {
@@ -93,6 +89,13 @@ export const RoutineView: React.FC<RoutineViewProps> = ({ onStartRoutine }) => {
       </div>
 
       <div className="space-y-4">
+        {routines.length === 0 && (
+          <div className="text-center py-10 bg-[#1c1f2a] border border-[#313540] rounded-2xl">
+            <p className="text-sm text-gray-400">등록된 루틴이 없습니다.</p>
+            <p className="text-xs text-gray-500 mt-1">상단에서 새 루틴을 생성해보세요!</p>
+          </div>
+        )}
+
         {routines.map(routine => {
           const isMain = mainRoutineId === routine.id;
           return (
@@ -111,7 +114,7 @@ export const RoutineView: React.FC<RoutineViewProps> = ({ onStartRoutine }) => {
                       onClick={() => setMainRoutineId(routine.id)}
                       className="text-[10px] px-2 py-1 bg-[#0f131d] text-gray-300 border border-[#313540] rounded hover:border-white transition-colors"
                     >
-                      메인으로 지정
+                      메인 지정
                     </button>
                   )}
                   <button onClick={() => handleDeleteRoutine(routine.id)} className="text-xs text-red-400 hover:text-red-300 ml-1">
@@ -128,30 +131,3 @@ export const RoutineView: React.FC<RoutineViewProps> = ({ onStartRoutine }) => {
                   </span>
                 ))}
                 {routine.exercises.length === 0 && <p className="text-[10px] text-gray-500 py-1">등록된 종목이 없습니다.</p>}
-              </div>
-
-              {addingExerciseToId === routine.id ? (
-                <div className="flex gap-2 pt-2">
-                  <input
-                    type="text"
-                    value={newExName}
-                    onChange={e => setNewExName(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddExerciseToRoutine(routine.id)}
-                    placeholder="종목 이름"
-                    className="flex-1 bg-[#0f131d] border border-[#313540] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none"
-                  />
-                  <button onClick={() => handleAddExerciseToRoutine(routine.id)} className="px-3 py-1 bg-[#a3e635] text-[#0f131d] font-bold text-xs rounded-lg">추가</button>
-                  <button onClick={() => setAddingExerciseToId(null)} className="px-2 py-1 text-xs text-gray-400 hover:text-white">취소</button>
-                </div>
-              ) : (
-                <button onClick={() => setAddingExerciseToId(routine.id)} className="text-[11px] text-gray-400 hover:text-[#a3e635] pt-1 block">
-                  + 종목 추가하기
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};

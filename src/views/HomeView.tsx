@@ -14,7 +14,6 @@ interface HomeViewProps {
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({ 
-  milestones, 
   userProfile, 
   mainRoutineTitle = '설정된 메인 루틴이 없습니다', 
   onStartRoutine 
@@ -22,22 +21,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedDayInfo, setSelectedDayInfo] = useState<string | null>(null);
 
-  // 로컬 스토리지에 저장된 운동 기록 날짜(1~31)를 가져오는 로직 (실제 연동)
+  // 로컬 스토리지에 저장된 진짜 운동 기록 날짜만 불러옴 (초기값 비어있음)
   const [workedOutDays, setWorkedOutDays] = useState<number[]>([]);
 
   useEffect(() => {
-    // 예시: App.tsx에서 운동 완료 시 저장한 날짜 배열을 불러옵니다.
-    // (없을 경우 연속 운동 일수를 기반으로 임시 계산하여 보여줍니다)
     const savedDates = localStorage.getItem('ironlog_workout_dates');
     if (savedDates) {
       setWorkedOutDays(JSON.parse(savedDates));
-    } else {
-      // 초기 상태 연동: 오늘 날짜 기준 연속 운동 일수만큼 칠하기
-      const today = new Date().getDate();
-      const temp = Array.from({ length: milestones.currentStreakDays }, (_, i) => today - i).filter(d => d > 0);
-      setWorkedOutDays(temp);
     }
-  }, [milestones]);
+    // 더미 데이터를 채우는 로직 완전히 삭제
+  }, []);
 
   const currentDate = new Date();
   currentDate.setMonth(currentDate.getMonth() + monthOffset);
@@ -109,43 +102,4 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-1.5 mb-2 text-center">
-          {['일', '월', '화', '수', '목', '금', '토'].map((day, idx) => (
-            <span key={idx} className={`text-[10px] font-bold ${idx === 0 ? 'text-red-400' : idx === 6 ? 'text-blue-400' : 'text-gray-500'}`}>
-              {day}
-            </span>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-1.5 text-center relative">
-          {emptyDays.map((_, idx) => (
-            <div key={`empty-${idx}`} className="h-9"></div>
-          ))}
-          {days.map(day => {
-            const isWorkedOut = monthOffset === 0 && workedOutDays.includes(day);
-            return (
-              <button 
-                key={day}
-                onClick={() => handleDayClick(day)}
-                className={`h-9 flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-200 ${
-                  isWorkedOut 
-                    ? 'bg-[#a3e635] text-[#0f131d] shadow-[0_0_8px_rgba(163,230,53,0.3)] hover:scale-110 cursor-pointer active:scale-95' 
-                    : 'bg-[#0f131d] text-gray-600 border border-[#2d313e] cursor-default'
-                }`}
-              >
-                {day}
-              </button>
-            );
-          })}
-        </div>
-
-        {selectedDayInfo && (
-          <div className="mt-4 p-3 bg-[#0f131d] rounded-xl border border-[#313540] text-center animate-fade-in">
-            <span className="text-[#a3e635] text-[11px] font-bold block mb-1">상세 기록</span>
-            <span className="text-white text-xs font-medium">{selectedDayInfo}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+        <div className="grid grid-
