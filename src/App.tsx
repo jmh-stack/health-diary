@@ -15,7 +15,6 @@ import { HomeView } from './views/HomeView';
 import { WorkoutView } from './views/WorkoutView';
 import { AnalyticsView } from './views/AnalyticsView';
 import { RoutineView } from './views/RoutineView';
-// 식단 뷰 제거 완료
 
 export interface UserProfile {
   name?: string;
@@ -38,18 +37,28 @@ export default function App() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: '민우',
-    gender: 'male',
-    height: 178,
-    weight: 74.5,
+  // 1. 프로필 브라우저 자동 저장 (localStorage)
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    const saved = localStorage.getItem('ironlog_profile');
+    if (saved) return JSON.parse(saved);
+    return { name: '민우', gender: 'male', height: 178, weight: 74.5 };
   });
 
-  const [milestones, setMilestones] = useState<MilestoneStreak>({
-    currentStreakDays: 5,
-    weeklyGoalCompleted: 3,
-    weeklyGoalTarget: 4
+  // 2. 통계 브라우저 자동 저장
+  const [milestones, setMilestones] = useState<MilestoneStreak>(() => {
+    const saved = localStorage.getItem('ironlog_milestones');
+    if (saved) return JSON.parse(saved);
+    return { currentStreakDays: 5, weeklyGoalCompleted: 3, weeklyGoalTarget: 4 };
   });
+
+  // 상태가 바뀔 때마다 브라우저에 즉시 저장
+  useEffect(() => {
+    localStorage.setItem('ironlog_profile', JSON.stringify(userProfile));
+  }, [userProfile]);
+
+  useEffect(() => {
+    localStorage.setItem('ironlog_milestones', JSON.stringify(milestones));
+  }, [milestones]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -72,6 +81,7 @@ export default function App() {
         {activeTab === 'home' && (
           <HomeView
             milestones={milestones}
+            userProfile={userProfile} // 홈 화면에 프로필 전달
             onStartRoutine={() => setActiveTab('workout')}
           />
         )}
