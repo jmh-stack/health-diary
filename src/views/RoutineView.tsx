@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 export interface RoutineGroup {
   id: string;
@@ -12,29 +12,16 @@ export interface RoutineGroup {
 }
 
 interface RoutineViewProps {
+  routines: RoutineGroup[];
+  setRoutines: React.Dispatch<React.SetStateAction<RoutineGroup[]>>;
+  mainRoutineId: string;
+  setMainRoutineId: React.Dispatch<React.SetStateAction<string>>;
   onStartRoutine: () => void;
 }
 
-export const RoutineView: React.FC<RoutineViewProps> = ({ onStartRoutine }) => {
-  const [routines, setRoutines] = useState<RoutineGroup[]>(() => {
-    const saved = localStorage.getItem('ironlog_routines');
-    if (saved) return JSON.parse(saved);
-    return [];
-  });
-
-  const [mainRoutineId, setMainRoutineId] = useState<string>(() => {
-    const saved = localStorage.getItem('ironlog_main_routine_id');
-    return saved || '';
-  });
-
-  useEffect(() => {
-    localStorage.setItem('ironlog_routines', JSON.stringify(routines));
-  }, [routines]);
-
-  useEffect(() => {
-    localStorage.setItem('ironlog_main_routine_id', mainRoutineId);
-  }, [mainRoutineId]);
-
+export const RoutineView: React.FC<RoutineViewProps> = ({ 
+  routines, setRoutines, mainRoutineId, setMainRoutineId, onStartRoutine 
+}) => {
   const [newRoutineTitle, setNewRoutineTitle] = useState('');
   const [addingExerciseToId, setAddingExerciseToId] = useState<string | null>(null);
   const [newExName, setNewExName] = useState('');

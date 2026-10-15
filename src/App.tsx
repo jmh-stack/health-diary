@@ -13,7 +13,7 @@ import { ProfileModal } from './components/ProfileModal';
 import { HomeView } from './views/HomeView';
 import { WorkoutView, WorkoutItem } from './views/WorkoutView';
 import { AnalyticsView } from './views/AnalyticsView';
-import { RoutineView } from './views/RoutineView';
+import { RoutineView, RoutineGroup } from './views/RoutineView';
 
 export interface UserProfile {
   name?: string;
@@ -32,37 +32,54 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // v2 키를 사용하여 기존 브라우저에 남은 더미 데이터를 무시하고 완전 공란으로 시작
+  // 1. 프로필 상태
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('ironlog_profile_v2');
+    const saved = localStorage.getItem('ironlog_profile');
     if (saved) return JSON.parse(saved);
     return { name: '', gender: '', height: '', weight: '' }; 
   });
 
-  // 목표 7일, 현재 0일의 완전 초기 데이터
+  // 2. 통계 (마일스톤) 상태
   const [milestones, setMilestones] = useState<MilestoneStreak>(() => {
-    const saved = localStorage.getItem('ironlog_milestones_v2');
+    const saved = localStorage.getItem('ironlog_milestones');
     if (saved) return JSON.parse(saved);
     return { currentStreakDays: 0, weeklyGoalCompleted: 0, weeklyGoalTarget: 7 };
   });
 
+  // 3. 현재 진행 중인 운동 상태
   const [currentWorkout, setCurrentWorkout] = useState<WorkoutItem[]>(() => {
-    const saved = localStorage.getItem('ironlog_current_workout_v2');
+    const saved = localStorage.getItem('ironlog_current_workout');
     if (saved) return JSON.parse(saved);
     return [];
   });
 
+  // 4. 운동 완료 출석부 (날짜 배열)
   const [workedOutDates, setWorkedOutDates] = useState<number[]>(() => {
-    const saved = localStorage.getItem('ironlog_workout_dates_v2');
+    const saved = localStorage.getItem('ironlog_workout_dates');
     if (saved) return JSON.parse(saved);
     return [];
   });
 
-  useEffect(() => { localStorage.setItem('ironlog_profile_v2', JSON.stringify(userProfile)); }, [userProfile]);
-  useEffect(() => { localStorage.setItem('ironlog_milestones_v2', JSON.stringify(milestones)); }, [milestones]);
-  useEffect(() => { localStorage.setItem('ironlog_current_workout_v2', JSON.stringify(currentWorkout)); }, [currentWorkout]);
-  useEffect(() => { localStorage.setItem('ironlog_workout_dates_v2', JSON.stringify(workedOutDates)); }, [workedOutDates]);
+  // 5. 커스텀 루틴 목록 및 메인 루틴 설정 상태 (동기화 핵심)
+  const [routines, setRoutines] = useState<RoutineGroup[]>(() => {
+    const saved = localStorage.getItem('ironlog_routines');
+    if (saved) return JSON.parse(saved);
+    return [];
+  });
 
+  const [mainRoutineId, setMainRoutineId] = useState<string>(() => {
+    return localStorage.getItem('ironlog_main_routine_id') || '';
+  });
+
+  // 데이터가 변경될 때마다 로컬 기기(브라우저)에 영구 저장
+  useEffect(() => { localStorage.setItem('ironlog_profile', JSON.stringify(userProfile)); }, [userProfile]);
+  useEffect(() => { localStorage.setItem('ironlog_milestones', JSON.stringify(milestones)); }, [milestones]);
+  useEffect(() => { localStorage.setItem('ironlog_current_workout', JSON.stringify(currentWorkout)); }, [currentWorkout]);
+  useEffect(() => { localStorage.setItem('ironlog_workout_dates', JSON.stringify(workedOutDates)); }, [workedOutDates]);
+  useEffect(() => { localStorage.setItem('ironlog_routines', JSON.stringify(routines)); }, [routines]);
+  useEffect(() => { localStorage.setItem('ironlog_main_routine_id', mainRoutineId); }, [mainRoutineId]);
+
+  // URL 탭 파라미터 동기화
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab') as TabType;
@@ -70,6 +87,10 @@ export default function App() {
       setActiveTab(tabParam);
     }
   }, []);
+
+  // 홈 화면에 넘겨줄 메인 루틴 이름 찾기
+  const mainRoutine = routines.find(r => r.id === mainRoutineId);
+  const mainRoutineTitle = mainRoutine ? mainRoutine.title : undefined;
 
   return (
     <div className="bg-[#0f131d] text-[#dfe2f1] min-h-screen flex flex-col antialiased">
@@ -84,6 +105,7 @@ export default function App() {
           <HomeView
             userProfile={userProfile}
             workedOutDays={workedOutDates}
+            mainRoutineTitle={mainRoutineTitle} // 홈 화면으로 이름 전달
             onStartRoutine={() => setActiveTab('workout')}
           />
         )}
@@ -100,7 +122,6 @@ export default function App() {
                 setMilestones((prev) => ({
                   ...prev,
                   currentStreakDays: prev.currentStreakDays + 1,
-                  // 주 7일 목표 적용
                   weeklyGoalCompleted: Math.min(prev.weeklyGoalCompleted + 1, prev.weeklyGoalTarget)
                 }));
               }
@@ -118,7 +139,15 @@ export default function App() {
           />
         )}
         
-        {activeTab === 'routine' && <RoutineView onStartRoutine={() => setActiveTab('workout')} />}
+        {activeTab === 'routine' && (
+          <RoutineView 
+            routines={routines}
+            setRoutines={setRoutines}
+            mainRoutineId={mainRoutineId}
+            setMainRoutineId={setMainRoutineId}
+            onStartRoutine={() => setActiveTab('workout')} 
+          />
+        )}
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab)} />

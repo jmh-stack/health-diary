@@ -3,31 +3,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
-import { MilestoneStreak, UserProfile } from '../App';
+import React, { useState } from 'react';
+import { UserProfile } from '../App';
 
 interface HomeViewProps {
-  milestones: MilestoneStreak;
   userProfile: UserProfile;
+  workedOutDays: number[];
   mainRoutineTitle?: string;
   onStartRoutine: () => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({ 
   userProfile, 
+  workedOutDays,
   mainRoutineTitle = '설정된 메인 루틴이 없습니다', 
   onStartRoutine 
 }) => {
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedDayInfo, setSelectedDayInfo] = useState<string | null>(null);
-  const [workedOutDays, setWorkedOutDays] = useState<number[]>([]);
-
-  useEffect(() => {
-    const savedDates = localStorage.getItem('ironlog_workout_dates');
-    if (savedDates) {
-      setWorkedOutDays(JSON.parse(savedDates));
-    }
-  }, []);
 
   const currentDate = new Date();
   currentDate.setMonth(currentDate.getMonth() + monthOffset);
