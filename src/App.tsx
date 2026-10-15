@@ -121,3 +121,57 @@ export default function App() {
         {activeTab === 'workout' && (
           <WorkoutView
             onCompleteWorkout={() => {
+              setMilestones((prev) => ({
+                ...prev,
+                currentStreakDays: prev.currentStreakDays + 1,
+                weeklyGoalCompleted: Math.min(prev.weeklyGoalCompleted + 1, prev.weeklyGoalTarget),
+                totalRecordedDaysMonth: prev.totalRecordedDaysMonth + 1
+              }));
+              setActiveTab('routine');
+            }}
+            onGoToAnalytics={() => setActiveTab('analytics')}
+          />
+        )}
+
+        {activeTab === 'analytics' && (
+          <AnalyticsView milestones={milestones} />
+        )}
+
+        {activeTab === 'diet' && (
+          <DietView userProfile={userProfile} />
+        )}
+
+        {activeTab === 'routine' && (
+          <RoutineView
+            userProfile={userProfile}
+            milestones={milestones}
+            onUpdateProfile={handleUpdateProfile}
+            onOpenProfileModal={() => setIsProfileEditOpen(true)}
+            onStartRoutine={() => setActiveTab('workout')}
+            onGoToAnalytics={() => setActiveTab('analytics')}
+          />
+        )}
+      </main>
+
+      {/* 하단 고정 탭 네비게이션 */}
+      <BottomNav activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab)} />
+
+      {/* 알림 모달 */}
+      <NotificationModal
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+      />
+
+      {/* 프로필 수정 모달 */}
+      <ProfileEditModal
+        isOpen={isProfileEditOpen}
+        userProfile={userProfile}
+        onSave={(updated) => {
+          handleUpdateProfile(updated);
+          setIsProfileEditOpen(false);
+        }}
+        onClose={() => setIsProfileEditOpen(false)}
+      />
+    </div>
+  );
+}
