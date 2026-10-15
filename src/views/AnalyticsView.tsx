@@ -16,7 +16,6 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ milestones, worked
   const attendanceCount = workedOutDays.length;
   const attendanceRate = Math.round((attendanceCount / currentMonthDays) * 100) || 0;
 
-  // 초기 상태에서는 차트 데이터도 무조건 비워둡니다 (앱 내 누적된 기록이 없으므로)
   const volumeData = [
     { label: '4주 전', value: 0 },
     { label: '3주 전', value: 0 },
@@ -32,19 +31,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ milestones, worked
         <p className="text-xs text-gray-400">앱 내 실제 기록만 합산하여 보여줍니다.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[#1c1f2a] border border-[#313540] rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-md">
-          <div className="text-[11px] text-gray-400 mb-1 font-medium">연속 운동</div>
-          <div className="text-2xl font-black text-white tracking-tight">
-            {milestones.currentStreakDays} <span className="text-sm font-normal text-gray-400">일째</span>
-          </div>
-        </div>
-        <div className="bg-[#1c1f2a] border border-[#313540] rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-md">
-          <div className="text-[11px] text-gray-400 mb-1 font-medium">이번 주 달성</div>
-          <div className="text-2xl font-black text-[#a3e635] tracking-tight">
-            {milestones.weeklyGoalCompleted}
-            <span className="text-sm font-normal text-gray-500"> / {milestones.weeklyGoalTarget}</span>
-          </div>
+      {/* 연속 운동 단일 카드로 크게 강조 */}
+      <div className="bg-[#1c1f2a] border border-[#313540] rounded-3xl p-6 flex flex-col items-center justify-center text-center shadow-lg">
+        <div className="text-[13px] text-[#a3e635] mb-1 font-bold">현재 연속 운동</div>
+        <div className="text-4xl font-black text-white tracking-tight mt-1">
+          {milestones.currentStreakDays} <span className="text-base font-normal text-gray-400">일째</span>
         </div>
       </div>
 

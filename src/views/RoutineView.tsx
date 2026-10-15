@@ -16,7 +16,7 @@ interface RoutineViewProps {
   setRoutines: React.Dispatch<React.SetStateAction<RoutineGroup[]>>;
   mainRoutineId: string;
   setMainRoutineId: React.Dispatch<React.SetStateAction<string>>;
-  onStartRoutine: () => void;
+  onStartRoutine: (routineId?: string) => void; // 💡 루틴 ID를 받을 수 있게 수정
 }
 
 export const RoutineView: React.FC<RoutineViewProps> = ({ 
@@ -95,10 +95,18 @@ export const RoutineView: React.FC<RoutineViewProps> = ({
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {/* 💡 개별 루틴별 시작 버튼에 해당 루틴 ID 전달 */}
+                  <button
+                    onClick={() => onStartRoutine(routine.id)}
+                    className="text-[10px] px-3 py-1.5 bg-[#a3e635]/20 text-[#a3e635] hover:bg-[#a3e635] hover:text-[#0f131d] rounded transition-colors font-bold"
+                  >
+                    이 루틴으로 시작
+                  </button>
+                  
                   {!isMain && (
                     <button
                       onClick={() => setMainRoutineId(routine.id)}
-                      className="text-[10px] px-2 py-1 bg-[#0f131d] text-gray-300 border border-[#313540] rounded hover:border-white transition-colors"
+                      className="text-[10px] px-2 py-1.5 bg-[#0f131d] text-gray-300 border border-[#313540] rounded hover:border-white transition-colors"
                     >
                       메인 지정
                     </button>
