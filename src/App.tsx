@@ -10,7 +10,7 @@ import { TabType } from './types/fitness';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { NotificationModal } from './components/NotificationModal';
-import { ProfileEditModal } from './components/ProfileEditModal';
+import { ProfileModal } from './components/ProfileModal';
 
 // 5대 탭 뷰
 import { HomeView } from './views/HomeView';
@@ -162,14 +162,9 @@ export default function App() {
         onClose={() => setIsNotificationOpen(false)}
       />
 
-      {/* 프로필 수정 모달 */}
-      <ProfileEditModal
+      {/* 프로필 모달 (실제 ProfileModal 컴포넌트 스펙 적용) */}
+      <ProfileModal
         isOpen={isProfileEditOpen}
-        userProfile={userProfile}
-        onSave={(updated) => {
-          handleUpdateProfile(updated);
-          setIsProfileEditOpen(false);
-        }}
         onClose={() => setIsProfileEditOpen(false)}
       />
     </div>
