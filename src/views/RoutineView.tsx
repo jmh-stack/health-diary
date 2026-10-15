@@ -16,11 +16,10 @@ interface RoutineViewProps {
 }
 
 export const RoutineView: React.FC<RoutineViewProps> = ({ onStartRoutine }) => {
-  // 루틴 기본값을 완전 비어있는 배열([])로 초기화
   const [routines, setRoutines] = useState<RoutineGroup[]>(() => {
     const saved = localStorage.getItem('ironlog_routines');
     if (saved) return JSON.parse(saved);
-    return []; // 처음 켰을 때 루틴 0개
+    return [];
   });
 
   const [mainRoutineId, setMainRoutineId] = useState<string>(() => {
@@ -130,4 +129,33 @@ export const RoutineView: React.FC<RoutineViewProps> = ({ onStartRoutine }) => {
                     <button onClick={() => handleRemoveExercise(routine.id, idx)} className="text-gray-500 hover:text-red-400 text-xs ml-1">✕</button>
                   </span>
                 ))}
-                {routine.exercises.length === 0 && <p className="text-[10px] text-gray-500 py-1">등록된 종목이 없습니다.</p>}
+                {routine.exercises.length === 0 && (
+                  <p className="text-[10px] text-gray-500 py-1">등록된 종목이 없습니다.</p>
+                )}
+              </div>
+
+              {addingExerciseToId === routine.id ? (
+                <div className="flex gap-2 pt-2">
+                  <input
+                    type="text"
+                    value={newExName}
+                    onChange={e => setNewExName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddExerciseToRoutine(routine.id)}
+                    placeholder="종목 이름"
+                    className="flex-1 bg-[#0f131d] border border-[#313540] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none"
+                  />
+                  <button onClick={() => handleAddExerciseToRoutine(routine.id)} className="px-3 py-1 bg-[#a3e635] text-[#0f131d] font-bold text-xs rounded-lg">추가</button>
+                  <button onClick={() => setAddingExerciseToId(null)} className="px-2 py-1 text-xs text-gray-400 hover:text-white">취소</button>
+                </div>
+              ) : (
+                <button onClick={() => setAddingExerciseToId(routine.id)} className="text-[11px] text-gray-400 hover:text-[#a3e635] pt-1 block">
+                  + 종목 추가하기
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
