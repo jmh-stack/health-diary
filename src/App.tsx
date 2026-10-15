@@ -8,7 +8,6 @@ import { TabType } from './types/fitness';
 
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
-import { NotificationModal } from './components/NotificationModal';
 import { ProfileModal } from './components/ProfileModal';
 
 import { HomeView } from './views/HomeView';
@@ -34,24 +33,20 @@ export interface MilestoneStreak {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // 1. 프로필 브라우저 자동 저장 (localStorage)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('ironlog_profile');
     if (saved) return JSON.parse(saved);
     return { name: '민우', gender: 'male', height: 178, weight: 74.5 };
   });
 
-  // 2. 통계 브라우저 자동 저장
   const [milestones, setMilestones] = useState<MilestoneStreak>(() => {
     const saved = localStorage.getItem('ironlog_milestones');
     if (saved) return JSON.parse(saved);
     return { currentStreakDays: 5, weeklyGoalCompleted: 3, weeklyGoalTarget: 4 };
   });
 
-  // 상태가 바뀔 때마다 브라우저에 즉시 저장
   useEffect(() => {
     localStorage.setItem('ironlog_profile', JSON.stringify(userProfile));
   }, [userProfile]);
@@ -73,7 +68,6 @@ export default function App() {
       <Header
         activeTab={activeTab}
         userProfile={userProfile}
-        onOpenNotifications={() => setIsNotificationOpen(true)}
         onOpenProfile={() => setIsProfileOpen(true)}
       />
 
@@ -81,13 +75,22 @@ export default function App() {
         {activeTab === 'home' && (
           <HomeView
             milestones={milestones}
-            userProfile={userProfile} // 홈 화면에 프로필 전달
+            userProfile={userProfile}
             onStartRoutine={() => setActiveTab('workout')}
           />
         )}
         {activeTab === 'workout' && (
           <WorkoutView
             onCompleteWorkout={() => {
+              const today = new Date().getDate();
+              // 오늘 운동 날짜 저장 로직 추가
+              const savedDates = localStorage.getItem('ironlog_workout_dates');
+              let datesArray = savedDates ? JSON.parse(savedDates) : [];
+              if (!datesArray.includes(today)) {
+                datesArray.push(today);
+                localStorage.setItem('ironlog_workout_dates', JSON.stringify(datesArray));
+              }
+
               setMilestones((prev) => ({
                 ...prev,
                 currentStreakDays: prev.currentStreakDays + 1,
@@ -102,11 +105,6 @@ export default function App() {
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab)} />
-
-      <NotificationModal
-        isOpen={isNotificationOpen}
-        onClose={() => setIsNotificationOpen(false)}
-      />
 
       <ProfileModal
         isOpen={isProfileOpen}
