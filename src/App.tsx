@@ -6,39 +6,26 @@
 import React, { useState, useEffect } from 'react';
 import { TabType } from './types/fitness';
 
-// Core Navigation & Global Shell Components
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { NotificationModal } from './components/NotificationModal';
-import { ProfileModal } from './components/ProfileModal'; // ProfileModal로 변경
+import { ProfileModal } from './components/ProfileModal';
 
-// 5대 탭 뷰
 import { HomeView } from './views/HomeView';
 import { WorkoutView } from './views/WorkoutView';
 import { AnalyticsView } from './views/AnalyticsView';
 import { DietView } from './views/DietView';
 import { RoutineView } from './views/RoutineView';
 
-// 1. 간소화된 사용자 프로필
 export interface UserProfile {
   gender: 'male' | 'female' | '';
-  height?: number | ''; // cm
-  weight?: number | ''; // kg
-  skeletalMuscle?: number | ''; // kg
-  bodyFatPercentage?: number | ''; // %
-  dailyProteinGoal?: number | ''; // g
-}
-
-// 2. 운동 종목별 총 횟수 기록 타입
-export interface FreeWorkoutEntry {
-  id: string;
-  name: string;
+  height?: number | '';
   weight?: number | '';
-  totalReps: number | '';
-  completed: boolean;
+  skeletalMuscle?: number | '';
+  bodyFatPercentage?: number | '';
+  dailyProteinGoal?: number | '';
 }
 
-// 마일스톤 스트릭
 export interface MilestoneStreak {
   currentStreakDays: number;
   weeklyGoalCompleted: number;
@@ -50,7 +37,6 @@ export default function App() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // 1. 사용자 신체 프로필
   const [userProfile, setUserProfile] = useState<UserProfile>({
     gender: '',
     height: '',
@@ -60,14 +46,12 @@ export default function App() {
     dailyProteinGoal: ''
   });
 
-  // 2. 마일스톤 상태
   const [milestones, setMilestones] = useState<MilestoneStreak>({
     currentStreakDays: 0,
     weeklyGoalCompleted: 0,
     weeklyGoalTarget: 4
   });
 
-  // URL 파라미터 동기화
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab') as TabType;
@@ -76,13 +60,8 @@ export default function App() {
     }
   }, []);
 
-  const handleUpdateProfile = (updated: Partial<UserProfile>) => {
-    setUserProfile((prev) => ({ ...prev, ...updated }));
-  };
-
   return (
-    <div className="bg-[#0f131d] text-[#dfe2f1] min-h-screen flex flex-col antialiased selection:bg-[#a3e635] selection:text-[#0f131d]">
-      {/* 상단 헤더 */}
+    <div className="bg-[#0f131d] text-[#dfe2f1] min-h-screen flex flex-col antialiased">
       <Header
         activeTab={activeTab}
         userProfile={userProfile}
@@ -90,9 +69,7 @@ export default function App() {
         onOpenProfile={() => setIsProfileOpen(true)}
       />
 
-      {/* 메인 뷰 컨테이너 */}
       <main className="flex flex-col relative w-full pt-16 pb-28 px-4 bg-[#0f131d] flex-1 max-w-lg mx-auto">
-        {/* 1. 홈 뷰 */}
         {activeTab === 'home' && (
           <HomeView
             milestones={milestones}
@@ -100,10 +77,39 @@ export default function App() {
           />
         )}
 
-        {/* 2. 운동 기록 뷰 */}
         {activeTab === 'workout' && (
           <WorkoutView
             onCompleteWorkout={() => {
-              setMilestones(prev => ({
+              setMilestones((prev) => ({
                 ...prev,
-                currentStreakDays: prev.currentStreakDays + 1
+                currentStreakDays: prev.currentStreakDays + 1,
+                weeklyGoalCompleted: Math.min(prev.weeklyGoalCompleted + 1, prev.weeklyGoalTarget)
+              }));
+              setActiveTab('home');
+            }}
+          />
+        )}
+
+        {activeTab === 'analytics' && <AnalyticsView milestones={milestones} />}
+
+        {activeTab === 'diet' && <DietView userProfile={userProfile} />}
+
+        {activeTab === 'routine' && (
+          <RoutineView onStartRoutine={() => setActiveTab('workout')} />
+        )}
+      </main>
+
+      <BottomNav activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab)} />
+
+      <NotificationModal
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+      />
+
+      <ProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
+    </div>
+  );
+}
