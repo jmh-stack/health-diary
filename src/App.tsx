@@ -1,14 +1,6 @@
 /**
-
-
-
-
-
-@license
-
-
-
-SPDX-License-Identifier: Apache-2.0
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import React, { useState, useEffect } from 'react';
@@ -52,16 +44,12 @@ export interface MilestoneStreak {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState
-
-('home');
+  const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
 
   // 1. 사용자 신체 프로필 상태 (이메일 배제, 직접 간편 수정 및 레퍼런스 기준)
-  const [userProfile, setUserProfile] = useState
-
-({
+  const [userProfile, setUserProfile] = useState<UserProfile>({
     gender: 'male',
     height: 178,
     weight: 74.5,
@@ -75,9 +63,7 @@ export default function App() {
   });
 
   // 2. 마일스톤 & 운동 연속 달성(Streak) 상태 (꾸준함 동기부여)
-  const [milestones, setMilestones] = useState
-
-({
+  const [milestones, setMilestones] = useState<MilestoneStreak>({
     currentStreakDays: 5,
     weeklyGoalCompleted: 3,
     weeklyGoalTarget: 4,
@@ -96,9 +82,7 @@ export default function App() {
   }, []);
 
   // 신체 스펙 업데이트 핸들러 (BMR, 유지칼로리 자동 레퍼런스 동기화)
-  const handleUpdateProfile = (updated: Partial
-
-) => {
+  const handleUpdateProfile = (updated: Partial<UserProfile>) => {
     setUserProfile((prev) => {
       const next = { ...prev, ...updated };
       // Mifflin-St Jeor 간이 레퍼런스 계산 (AI 추천이 아닌 사용자 입력 기반 공식)
@@ -115,9 +99,7 @@ export default function App() {
   };
 
   return (
-    
-
-
+    <div className="min-h-screen bg-[#0f131d] text-white flex flex-col">
       {/* 
         [상단 헤더]:
         - 불필요한 계정/이메일 배제
@@ -130,106 +112,48 @@ export default function App() {
         onOpenProfile={() => setIsProfileEditOpen(true)}
       />
 
-  {/* 메인 뷰 컨테이너 */}
-  <main className="flex flex-col relative w-full pt-16 pb-28 px-4 bg-[#0f131d] flex-1 max-w-lg mx-auto">
-    {/* 
-      1. 홈 뷰 (HomeView):
-      - 피로도 최소화 / 미니멀한 구성
-      - 야외 산스장 실시간 날씨 및 기온
-      - 시의적절한 오늘의 동기부여 문구
-      - 마일스톤 & 연속 달성(Streak) 배지
-      - 내가 정한 오늘의 고정 루틴 바로 시작 (원터치 CTA)
-    */}
-    {activeTab === 'home' && (
-      <HomeView
-        milestones={milestones}
-        onStartRoutine={() => setActiveTab('workout')}
-        onGoToRoutine={() => setActiveTab('routine')}
-        onOpenProfileEdit={() => setIsProfileEditOpen(true)}
-      />
-    )}
+      {/* 메인 뷰 컨테이너 */}
+      <main className="flex flex-col relative w-full pt-16 pb-28 px-4 bg-[#0f131d] flex-1 max-w-lg mx-auto">
+        {/* 
+          1. 홈 뷰 (HomeView):
+          - 피로도 최소화 / 미니멀한 구성
+          - 야외 산스장 실시간 날씨 및 기온
+          - 시의적절한 오늘의 동기부여 문구
+          - 마일스톤 & 연속 달성(Streak) 배지
+          - 내가 정한 오늘의 고정 루틴 바로 시작 (원터치 CTA)
+        */}
+        {activeTab === 'home' && (
+          <HomeView
+            milestones={milestones}
+            onStartRoutine={() => setActiveTab('workout')}
+            onGoToRoutine={() => setActiveTab('routine')}
+            onOpenProfileEdit={() => setIsProfileEditOpen(true)}
+          />
+        )}
 
-    {/* 
-      2. 운동 기록 뷰 (WorkoutView):
-      - 세트/중량/횟수/휴식 타이머 직관적 다이어리 기록
-      - 지난 기록과 즉시 비교 가능한 담백한 입력창
-    */}
-    {activeTab === 'workout' && (
-      <WorkoutView
-        onCompleteWorkout={() => {
-          // 마일스톤 업데이트 트리거
-          setMilestones(prev => ({
-            ...prev,
-            currentStreakDays: prev.currentStreakDays + 1,
-            weeklyGoalCompleted: Math.min(prev.weeklyGoalCompleted + 1, prev.weeklyGoalTarget),
-            totalRecordedDaysMonth: prev.totalRecordedDaysMonth + 1
-          }));
-          setActiveTab('routine');
-        }}
-        onGoToAnalytics={() => setActiveTab('analytics')}
-      />
-    )}
+        {/* 
+          2. 운동 기록 뷰 (WorkoutView):
+          - 세트/중량/횟수/휴식 타이머 직관적 다이어리 기록
+          - 지난 기록과 즉시 비교 가능한 담백한 입력창
+        */}
+        {activeTab === 'workout' && (
+          <WorkoutView
+            onCompleteWorkout={() => {
+              // 마일스톤 업데이트 트리거
+              setMilestones(prev => ({
+                ...prev,
+                currentStreakDays: prev.currentStreakDays + 1,
+                weeklyGoalCompleted: Math.min(prev.weeklyGoalCompleted + 1, prev.weeklyGoalTarget),
+                totalRecordedDaysMonth: prev.totalRecordedDaysMonth + 1
+              }));
+              setActiveTab('routine');
+            }}
+            onGoToAnalytics={() => setActiveTab('analytics')}
+          />
+        )}
 
-    {/* 
-      3. 분석·통계 뷰 (AnalyticsView):
-      - 주차별 기록표, 총 볼륨 추이, 꾸준함 마일스톤 리포트
-    */}
-    {activeTab === 'analytics' && (
-      <AnalyticsView milestones={milestones} />
-    )}
-
-    {/* 
-      4. 식단 관리 뷰 (DietView):
-      - AI 추천을 배제하고, 사용자 지정 단백질/칼로리 다이어리 기록
-      - 신체 정보(체중, 골격근량)에 맞춘 레퍼런스 기준치 대비 섭취량 달성도
-    */}
-    {activeTab === 'diet' && (
-      <DietView userProfile={userProfile} />
-    )}
-
-    {/* 
-      5. 루틴 관리 뷰 (RoutineView):
-      - AI 알고리즘 추천 배제: '내 고정 루틴' 반복, 수행, 순서 변경, 세부 수정
-      - 상단 신체 정보 직접 기입 / 터치 수정 위젯 (비공개 토글)
-      - 월간 캘린더 기록표 & 최근 수행 일지 다이어리
-    */}
-    {activeTab === 'routine' && (
-      <RoutineView
-        userProfile={userProfile}
-        milestones={milestones}
-        onUpdateProfile={handleUpdateProfile}
-        onOpenProfileModal={() => setIsProfileEditOpen(true)}
-        onStartRoutine={() => setActiveTab('workout')}
-        onGoToAnalytics={() => setActiveTab('analytics')}
-      />
-    )}
-  </main>
-
-  {/* 하단 고정 탭 네비게이션 (홈 - 운동기록 - 분석통계 - 식단관리 - 루틴관리) */}
-  <BottomNav activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab)} />
-
-  {/* 알림 모달 */}
-  <NotificationModal
-    isOpen={isNotificationOpen}
-    onClose={() => setIsNotificationOpen(false)}
-  />
-
-  {/* 
-    [개인정보 & 신체 스펙 간편 수정 모달]:
-    - 이메일/계정 불필요한 입력 제거
-    - 성별, 키, 몸무게, 골격근량, 체지방률 원터치 스테퍼 및 직접 입력
-    - InBody 자동 연동 및 마스킹 보안 토글 내장
-  */}
-  <ProfileEditModal
-    isOpen={isProfileEditOpen}
-    userProfile={userProfile}
-    onSave={(updated) => {
-      handleUpdateProfile(updated);
-      setIsProfileEditOpen(false);
-    }}
-    onClose={() => setIsProfileEditOpen(false)}
-  />
-</div>
-
-  );
-}.
+        {/* 
+          3. 분석·통계 뷰 (AnalyticsView):
+          - 주차별 기록표, 총 볼륨 추이, 꾸준함 마일스톤 리포트
+        */}
+        {activeTab === 'analytics' &&
