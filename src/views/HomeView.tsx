@@ -4,23 +4,23 @@
  */
 
 import React, { useState } from 'react';
-import { UserProfile } from '../App';
+import { UserProfile, DailyRecord } from '../App';
 
 interface HomeViewProps {
   userProfile: UserProfile;
-  workedOutDays: number[];
+  dailyRecords: DailyRecord[]; // 💡 상세 기록 데이터 수신
   mainRoutineTitle?: string;
   onStartRoutine: () => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({ 
   userProfile, 
-  workedOutDays,
+  dailyRecords,
   mainRoutineTitle = '설정된 메인 루틴이 없습니다', 
   onStartRoutine 
 }) => {
   const [monthOffset, setMonthOffset] = useState(0);
-  const [selectedDayInfo, setSelectedDayInfo] = useState<string | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<DailyRecord | null>(null);
 
   const currentDate = new Date();
   currentDate.setMonth(currentDate.getMonth() + monthOffset);
@@ -33,11 +33,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const emptyDays = Array.from({ length: firstDayOfWeek });
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
+  // 현재 월의 운동한 날짜 목록 (숫자만)
+  const workedOutDays = monthOffset === 0 ? dailyRecords.map(r => r.date) : [];
+
   const handleDayClick = (day: number) => {
     if (monthOffset === 0 && workedOutDays.includes(day)) {
-      setSelectedDayInfo(`${currentMonth}월 ${day}일: 운동을 완료한 날입니다!`);
+      const record = dailyRecords.find(r => r.date === day);
+      if (record) setSelectedRecord(record);
     } else {
-      setSelectedDayInfo(null);
+      setSelectedRecord(null);
     }
   };
 
@@ -75,7 +79,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <h3 className="font-bold text-sm text-white">운동 출석부</h3>
           <div className="flex items-center gap-3">
             <button 
-              onClick={() => { setMonthOffset(prev => prev - 1); setSelectedDayInfo(null); }}
+              onClick={() => { setMonthOffset(prev => prev - 1); setSelectedRecord(null); }}
               className="w-7 h-7 flex items-center justify-center rounded-full bg-[#0f131d] border border-[#313540] text-gray-400 hover:text-white"
             >
               <span className="material-symbols-outlined text-sm">chevron_left</span>
@@ -84,7 +88,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               {currentYear}.{currentMonth}
             </span>
             <button 
-              onClick={() => { setMonthOffset(prev => prev + 1); setSelectedDayInfo(null); }}
+              onClick={() => { setMonthOffset(prev => prev + 1); setSelectedRecord(null); }}
               className="w-7 h-7 flex items-center justify-center rounded-full bg-[#0f131d] border border-[#313540] text-gray-400 hover:text-white"
             >
               <span className="material-symbols-outlined text-sm">chevron_right</span>
@@ -122,10 +126,28 @@ export const HomeView: React.FC<HomeViewProps> = ({
           })}
         </div>
 
-        {selectedDayInfo && (
-          <div className="mt-4 p-3 bg-[#0f131d] rounded-xl border border-[#313540] text-center animate-fade-in">
-            <span className="text-[#a3e635] text-[11px] font-bold block mb-1">상세 기록</span>
-            <span className="text-white text-xs font-medium">{selectedDayInfo}</span>
+        {/* 💡 날짜 탭 시 렌더링되는 상세 기록 리스트 영역 */}
+        {selectedRecord && (
+          <div className="mt-5 p-4 bg-[#0f131d] rounded-2xl border border-[#313540] animate-fade-in space-y-3">
+            <h4 className="text-sm font-bold text-[#a3e635] border-b border-[#313540] pb-2">
+              {currentMonth}월 {selectedRecord.date}일 운동 기록
+            </h4>
+            
+            <div className="space-y-2">
+              {selectedRecord.exercises.length > 0 ? (
+                selectedRecord.exercises.map((ex, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-xs">
+                    <span className="text-white font-medium">{ex.name}</span>
+                    <span className="text-gray-400">
+                      {ex.weight ? `${ex.weight}kg · ` : '맨몸 · '} 
+                      {ex.reps ? `${ex.reps}회` : '-'}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-gray-500 text-center py-2">저장된 종목 내역이 없습니다.</div>
+              )}
+            </div>
           </div>
         )}
       </div>

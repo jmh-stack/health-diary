@@ -26,17 +26,20 @@ export interface MilestoneStreak {
   currentStreakDays: number;
 }
 
-// 💡 [핵심 복구 로직] 과거에 저장된 데이터(v3, v2, 초기버전)를 찾아내어 영구 키(prod)로 끌어오는 함수
+// 💡 날짜별 운동 상세 기록을 담기 위한 타입
+export interface DailyRecord {
+  date: number; // 일자 (1~31)
+  exercises: WorkoutItem[]; // 그날 수행한 운동 목록
+}
+
 function loadData<T>(prodKey: string, oldKeys: string[], defaultValue: T): T {
   try {
     const savedProd = localStorage.getItem(prodKey);
     if (savedProd) return JSON.parse(savedProd);
-
-    // 예전 이름표로 저장된 기록이 있는지 하나씩 확인
     for (const oldKey of oldKeys) {
       const savedOld = localStorage.getItem(oldKey);
       if (savedOld) {
-        localStorage.setItem(prodKey, savedOld); // 찾았다면 영구 저장소(prod)로 복원 완료!
+        localStorage.setItem(prodKey, savedOld);
         return JSON.parse(savedOld);
       }
     }
@@ -50,54 +53,37 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // 1. 프로필 자동 복원 및 로드
   const [userProfile, setUserProfile] = useState<UserProfile>(() => 
-    loadData('ironlog_prod_profile', ['ironlog_profile_v3', 'ironlog_profile_v2', 'ironlog_profile'], { name: '', gender: '', height: '', weight: '' })
+    loadData('ironlog_prod_profile', [], { name: '', gender: '', height: '', weight: '' })
   );
 
-  // 2. 통계 자동 복원 및 로드
   const [milestones, setMilestones] = useState<MilestoneStreak>(() => 
-    loadData('ironlog_prod_milestones', ['ironlog_milestones_v3', 'ironlog_milestones_v2', 'ironlog_milestones'], { currentStreakDays: 0 })
+    loadData('ironlog_prod_milestones', [], { currentStreakDays: 0 })
   );
 
-  // 3. 현재 운동 기록 복원
   const [currentWorkout, setCurrentWorkout] = useState<WorkoutItem[]>(() => 
-    loadData('ironlog_prod_current_workout', ['ironlog_current_workout_v3', 'ironlog_current_workout_v2', 'ironlog_current_workout'], [])
+    loadData('ironlog_prod_current_workout', [], [])
   );
 
-  // 4. 운동 출석부 날짜 복원
-  const [workedOutDates, setWorkedOutDates] = useState<number[]>(() => 
-    loadData('ironlog_prod_workout_dates', ['ironlog_workout_dates_v3', 'ironlog_workout_dates_v2', 'ironlog_workout_dates'], [])
-  );
-
-  // 5. 나만의 루틴 목록 자동 복원!
   const [routines, setRoutines] = useState<RoutineGroup[]>(() => 
-    loadData('ironlog_prod_routines', ['ironlog_routines_v3', 'ironlog_routines'], [])
+    loadData('ironlog_prod_routines', [], [])
   );
 
-  // 6. 메인 루틴 ID 복원
   const [mainRoutineId, setMainRoutineId] = useState<string>(() => {
-    const savedProd = localStorage.getItem('ironlog_prod_main_routine_id');
-    if (savedProd) return savedProd;
-    
-    const oldKeys = ['ironlog_main_routine_id_v3', 'ironlog_main_routine_id'];
-    for (const oldKey of oldKeys) {
-      const savedOld = localStorage.getItem(oldKey);
-      if (savedOld) {
-        localStorage.setItem('ironlog_prod_main_routine_id', savedOld);
-        return savedOld;
-      }
-    }
-    return '';
+    return localStorage.getItem('ironlog_prod_main_routine_id') || '';
   });
 
-  // 데이터 변경 시 이제 오직 'prod' (영구) 키에만 저장합니다.
+  // 💡 단순 날짜 배열이 아닌, { date, exercises } 객체 배열로 변경!
+  const [dailyRecords, setDailyRecords] = useState<DailyRecord[]>(() => 
+    loadData('ironlog_prod_daily_records', [], [])
+  );
+
   useEffect(() => { localStorage.setItem('ironlog_prod_profile', JSON.stringify(userProfile)); }, [userProfile]);
   useEffect(() => { localStorage.setItem('ironlog_prod_milestones', JSON.stringify(milestones)); }, [milestones]);
   useEffect(() => { localStorage.setItem('ironlog_prod_current_workout', JSON.stringify(currentWorkout)); }, [currentWorkout]);
-  useEffect(() => { localStorage.setItem('ironlog_prod_workout_dates', JSON.stringify(workedOutDates)); }, [workedOutDates]);
   useEffect(() => { localStorage.setItem('ironlog_prod_routines', JSON.stringify(routines)); }, [routines]);
   useEffect(() => { localStorage.setItem('ironlog_prod_main_routine_id', mainRoutineId); }, [mainRoutineId]);
+  useEffect(() => { localStorage.setItem('ironlog_prod_daily_records', JSON.stringify(dailyRecords)); }, [dailyRecords]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -124,23 +110,18 @@ export default function App() {
       }));
       setCurrentWorkout(loadedWorkout);
     }
-    
     setActiveTab('workout');
   };
 
   return (
     <div className="bg-[#0f131d] text-[#dfe2f1] min-h-screen flex flex-col antialiased">
-      <Header
-        activeTab={activeTab}
-        userProfile={userProfile}
-        onOpenProfile={() => setIsProfileOpen(true)}
-      />
+      <Header activeTab={activeTab} userProfile={userProfile} onOpenProfile={() => setIsProfileOpen(true)} />
 
       <main className="flex flex-col relative w-full pt-16 pb-28 px-4 bg-[#0f131d] flex-1 max-w-lg mx-auto">
         {activeTab === 'home' && (
           <HomeView
             userProfile={userProfile}
-            workedOutDays={workedOutDates}
+            dailyRecords={dailyRecords} // 💡 상세 기록 데이터 홈으로 전달
             mainRoutineTitle={mainRoutineTitle}
             onStartRoutine={() => handleStartRoutine()}
           />
@@ -152,12 +133,21 @@ export default function App() {
             setExercises={setCurrentWorkout}
             onCompleteWorkout={() => {
               const today = new Date().getDate();
+              // '완료 체크' 된 종목만 필터링하여 저장
+              const completedExercises = currentWorkout.filter(ex => ex.completed);
               
-              if (!workedOutDates.includes(today)) {
-                setWorkedOutDates(prev => [...prev, today]);
-                setMilestones(prev => ({
-                  currentStreakDays: prev.currentStreakDays + 1
-                }));
+              if (completedExercises.length > 0) {
+                // 이미 오늘 기록이 있다면 덮어씌우거나 추가 (여기선 덮어쓰기)
+                setDailyRecords(prev => {
+                  const filtered = prev.filter(r => r.date !== today);
+                  return [...filtered, { date: today, exercises: completedExercises }];
+                });
+
+                // 스트릭 증가
+                const hasWorkedOutToday = dailyRecords.some(r => r.date === today);
+                if (!hasWorkedOutToday) {
+                  setMilestones(prev => ({ currentStreakDays: prev.currentStreakDays + 1 }));
+                }
               }
               
               setCurrentWorkout([]);
@@ -169,7 +159,7 @@ export default function App() {
         {activeTab === 'analytics' && (
           <AnalyticsView 
             milestones={milestones} 
-            workedOutDays={workedOutDates} 
+            workedOutDays={dailyRecords.map(r => r.date)} 
           />
         )}
         
