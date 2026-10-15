@@ -14,18 +14,14 @@ export interface WorkoutItem {
 }
 
 interface WorkoutViewProps {
+  exercises: WorkoutItem[];
+  setExercises: React.Dispatch<React.SetStateAction<WorkoutItem[]>>;
   onCompleteWorkout: () => void;
 }
 
-export const WorkoutView: React.FC<WorkoutViewProps> = ({ onCompleteWorkout }) => {
-  const [exercises, setExercises] = useState<WorkoutItem[]>([
-    { id: '1', name: '벤치프레스', weight: 80, reps: 10, completed: false },
-    { id: '2', name: '인클라인 덤벨 프레스', weight: 24, reps: 12, completed: false },
-    { id: '3', name: '딥스', weight: 0, reps: 15, completed: false }
-  ]);
+export const WorkoutView: React.FC<WorkoutViewProps> = ({ exercises, setExercises, onCompleteWorkout }) => {
   const [newExerciseName, setNewExerciseName] = useState('');
 
-  // 종목 추가
   const handleAddExercise = () => {
     if (!newExerciseName.trim()) return;
     const newItem: WorkoutItem = {
@@ -39,12 +35,10 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ onCompleteWorkout }) =
     setNewExerciseName('');
   };
 
-  // 종목 삭제
   const handleDeleteExercise = (id: string) => {
     setExercises(prev => prev.filter(item => item.id !== id));
   };
 
-  // 종목 수치 변경
   const handleUpdate = (id: string, field: 'weight' | 'reps', value: string) => {
     const num = value === '' ? '' : Number(value);
     setExercises(prev =>
@@ -52,7 +46,6 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ onCompleteWorkout }) =
     );
   };
 
-  // 완료 토글
   const handleToggle = (id: string) => {
     setExercises(prev =>
       prev.map(item => (item.id === id ? { ...item, completed: !item.completed } : item))
@@ -61,14 +54,11 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ onCompleteWorkout }) =
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-white">오늘의 운동 기록</h2>
-          <p className="text-xs text-gray-400">자유롭게 종목을 구성하고 수행한 횟수를 입력하세요.</p>
-        </div>
+      <div>
+        <h2 className="text-xl font-bold text-white">오늘의 운동 기록</h2>
+        <p className="text-xs text-gray-400">자유롭게 종목을 구성하고 수행한 횟수를 입력하세요.</p>
       </div>
 
-      {/* 새 종목 자유 추가 */}
       <div className="flex gap-2 bg-[#1c1f2a] p-2 rounded-xl border border-[#313540]">
         <input
           type="text"
@@ -86,8 +76,13 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ onCompleteWorkout }) =
         </button>
       </div>
 
-      {/* 종목 리스트 */}
       <div className="space-y-3">
+        {exercises.length === 0 && (
+          <div className="text-center py-10 text-gray-500 text-sm bg-[#1c1f2a] rounded-2xl border border-[#313540]">
+            위에서 종목을 추가하고 운동을 시작해보세요!
+          </div>
+        )}
+
         {exercises.map((item, index) => (
           <div
             key={item.id}
@@ -122,7 +117,7 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ onCompleteWorkout }) =
                   value={item.weight}
                   onChange={e => handleUpdate(item.id, 'weight', e.target.value)}
                   placeholder="0"
-                  className="w-full bg-[#0f131d] border border-[#313540] rounded-lg px-2 py-1.5 text-xs text-white text-center"
+                  className="w-full bg-[#0f131d] border border-[#313540] rounded-lg px-2 py-1.5 text-xs text-white text-center focus:border-[#a3e635] outline-none"
                 />
               </div>
               <div>
@@ -132,7 +127,7 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ onCompleteWorkout }) =
                   value={item.reps}
                   onChange={e => handleUpdate(item.id, 'reps', e.target.value)}
                   placeholder="0"
-                  className="w-full bg-[#0f131d] border border-[#313540] rounded-lg px-2 py-1.5 text-xs text-white text-center"
+                  className="w-full bg-[#0f131d] border border-[#313540] rounded-lg px-2 py-1.5 text-xs text-white text-center focus:border-[#a3e635] outline-none"
                 />
               </div>
               <div className="flex items-end h-full pt-4">
@@ -141,7 +136,7 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ onCompleteWorkout }) =
                   className={`w-full py-1.5 rounded-lg text-xs font-bold border transition-colors ${
                     item.completed
                       ? 'bg-[#22c55e] text-white border-[#22c55e]'
-                      : 'bg-transparent text-gray-400 border-[#313540] hover:border-[#a3e635] hover:text-white'
+                      : 'bg-[#1c1f2a] text-gray-400 border-[#313540] hover:border-[#a3e635] hover:text-white'
                   }`}
                 >
                   {item.completed ? '완료됨 ✓' : '완료 체크'}
@@ -152,10 +147,12 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ onCompleteWorkout }) =
         ))}
       </div>
 
-      {/* 전체 운동 완료 CTA */}
       <button
         onClick={onCompleteWorkout}
-        className="w-full py-4 bg-[#a3e635] text-[#0f131d] font-bold rounded-2xl text-base shadow-lg hover:bg-[#86efac] transition-colors"
+        disabled={exercises.length === 0}
+        className={`w-full py-4 font-bold rounded-2xl text-base shadow-lg transition-colors ${
+          exercises.length === 0 ? 'bg-[#313540] text-gray-500 cursor-not-allowed' : 'bg-[#a3e635] text-[#0f131d] hover:bg-[#86efac]'
+        }`}
       >
         오늘 운동 완수 및 기록 저장
       </button>
