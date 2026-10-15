@@ -12,12 +12,11 @@ interface BottomNavProps {
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
-  // 식단(diet) 제거, 4개 탭으로 심플화
   const navItems = [
-    { id: 'home', label: '홈', icon: '🏠' },
-    { id: 'workout', label: '운동 기록', icon: '📝' },
-    { id: 'analytics', label: '통계', icon: '📊' },
-    { id: 'routine', label: '내 루틴', icon: '📋' }
+    { id: 'home', label: '홈', icon: 'home' },
+    { id: 'workout', label: '운동 기록', icon: 'edit_document' },
+    { id: 'analytics', label: '통계', icon: 'bar_chart' },
+    { id: 'routine', label: '내 루틴', icon: 'list_alt' }
   ];
 
   return (
@@ -31,8 +30,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
               activeTab === item.id ? 'text-[#a3e635]' : 'text-gray-500 hover:text-gray-300'
             }`}
           >
-            <span className="text-2xl">{item.icon}</span>
-            <span className="text-xs font-bold mt-1">{item.label}</span>
+            <span className="material-symbols-outlined text-[26px] mb-0.5">{item.icon}</span>
+            <span className="text-[10px] font-bold">{item.label}</span>
           </button>
         ))}
       </div>
