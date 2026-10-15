@@ -32,37 +32,36 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // 로컬 스토리지 관리 상태들
+  // v2 키를 사용하여 기존 브라우저에 남은 더미 데이터를 무시하고 완전 공란으로 시작
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('ironlog_profile');
+    const saved = localStorage.getItem('ironlog_profile_v2');
     if (saved) return JSON.parse(saved);
     return { name: '', gender: '', height: '', weight: '' }; 
   });
 
+  // 목표 7일, 현재 0일의 완전 초기 데이터
   const [milestones, setMilestones] = useState<MilestoneStreak>(() => {
-    const saved = localStorage.getItem('ironlog_milestones');
+    const saved = localStorage.getItem('ironlog_milestones_v2');
     if (saved) return JSON.parse(saved);
-    return { currentStreakDays: 0, weeklyGoalCompleted: 0, weeklyGoalTarget: 4 };
+    return { currentStreakDays: 0, weeklyGoalCompleted: 0, weeklyGoalTarget: 7 };
   });
 
-  // 🔴 탭 이동 시에도 유지되도록 운동 기록 데이터 상태를 App.tsx로 끌어올림
   const [currentWorkout, setCurrentWorkout] = useState<WorkoutItem[]>(() => {
-    const saved = localStorage.getItem('ironlog_current_workout');
+    const saved = localStorage.getItem('ironlog_current_workout_v2');
     if (saved) return JSON.parse(saved);
     return [];
   });
 
-  // 🔴 실제 운동 완료한 날짜들 (통계 및 홈화면 출석부 연동용)
   const [workedOutDates, setWorkedOutDates] = useState<number[]>(() => {
-    const saved = localStorage.getItem('ironlog_workout_dates');
+    const saved = localStorage.getItem('ironlog_workout_dates_v2');
     if (saved) return JSON.parse(saved);
     return [];
   });
 
-  useEffect(() => { localStorage.setItem('ironlog_profile', JSON.stringify(userProfile)); }, [userProfile]);
-  useEffect(() => { localStorage.setItem('ironlog_milestones', JSON.stringify(milestones)); }, [milestones]);
-  useEffect(() => { localStorage.setItem('ironlog_current_workout', JSON.stringify(currentWorkout)); }, [currentWorkout]);
-  useEffect(() => { localStorage.setItem('ironlog_workout_dates', JSON.stringify(workedOutDates)); }, [workedOutDates]);
+  useEffect(() => { localStorage.setItem('ironlog_profile_v2', JSON.stringify(userProfile)); }, [userProfile]);
+  useEffect(() => { localStorage.setItem('ironlog_milestones_v2', JSON.stringify(milestones)); }, [milestones]);
+  useEffect(() => { localStorage.setItem('ironlog_current_workout_v2', JSON.stringify(currentWorkout)); }, [currentWorkout]);
+  useEffect(() => { localStorage.setItem('ironlog_workout_dates_v2', JSON.stringify(workedOutDates)); }, [workedOutDates]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -89,7 +88,6 @@ export default function App() {
           />
         )}
         
-        {/* WorkoutView에 저장된 운동 상태를 전달 */}
         {activeTab === 'workout' && (
           <WorkoutView
             exercises={currentWorkout}
@@ -102,11 +100,11 @@ export default function App() {
                 setMilestones((prev) => ({
                   ...prev,
                   currentStreakDays: prev.currentStreakDays + 1,
+                  // 주 7일 목표 적용
                   weeklyGoalCompleted: Math.min(prev.weeklyGoalCompleted + 1, prev.weeklyGoalTarget)
                 }));
               }
               
-              // 운동 완료 후 폼 비우고 홈으로 이동
               setCurrentWorkout([]);
               setActiveTab('home');
             }}

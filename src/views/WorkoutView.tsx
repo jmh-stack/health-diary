@@ -87,9 +87,7 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ exercises, setExercise
           <div
             key={item.id}
             className={`p-4 rounded-2xl border transition-all ${
-              item.completed
-                ? 'bg-[#151822] border-[#22c55e]/30'
-                : 'bg-[#1c1f2a] border-[#313540]'
+              item.completed ? 'bg-[#151822] border-[#22c55e]/30' : 'bg-[#1c1f2a] border-[#313540]'
             }`}
           >
             <div className="flex items-center justify-between mb-3">
@@ -101,22 +99,27 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ exercises, setExercise
                   {item.name}
                 </span>
               </div>
-              <button
-                onClick={() => handleDeleteExercise(item.id)}
-                className="text-xs text-red-400 hover:text-red-300"
-              >
+              <button onClick={() => handleDeleteExercise(item.id)} className="text-xs text-red-400 hover:text-red-300">
                 삭제
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 items-center">
+            <div className="grid grid-cols-3 gap-2 items-end">
               <div>
-                <label className="block text-[10px] text-gray-400 mb-1">중량 (kg)</label>
+                <label className="flex items-center justify-between text-[10px] text-gray-400 mb-1">
+                  중량 (kg)
+                  <button 
+                    onClick={() => handleUpdate(item.id, 'weight', '')} 
+                    className="text-[#a3e635] text-[9px] hover:text-white bg-[#a3e635]/10 px-1 rounded transition-colors"
+                  >
+                    맨몸
+                  </button>
+                </label>
                 <input
                   type="number"
                   value={item.weight}
                   onChange={e => handleUpdate(item.id, 'weight', e.target.value)}
-                  placeholder="0"
+                  placeholder="맨몸"
                   className="w-full bg-[#0f131d] border border-[#313540] rounded-lg px-2 py-1.5 text-xs text-white text-center focus:border-[#a3e635] outline-none"
                 />
               </div>
@@ -130,13 +133,11 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({ exercises, setExercise
                   className="w-full bg-[#0f131d] border border-[#313540] rounded-lg px-2 py-1.5 text-xs text-white text-center focus:border-[#a3e635] outline-none"
                 />
               </div>
-              <div className="flex items-end h-full pt-4">
+              <div className="h-full">
                 <button
                   onClick={() => handleToggle(item.id)}
-                  className={`w-full py-1.5 rounded-lg text-xs font-bold border transition-colors ${
-                    item.completed
-                      ? 'bg-[#22c55e] text-white border-[#22c55e]'
-                      : 'bg-[#1c1f2a] text-gray-400 border-[#313540] hover:border-[#a3e635] hover:text-white'
+                  className={`w-full h-8 rounded-lg text-xs font-bold border transition-colors ${
+                    item.completed ? 'bg-[#22c55e] text-white border-[#22c55e]' : 'bg-[#1c1f2a] text-gray-400 border-[#313540] hover:border-[#a3e635] hover:text-white'
                   }`}
                 >
                   {item.completed ? '완료됨 ✓' : '완료 체크'}

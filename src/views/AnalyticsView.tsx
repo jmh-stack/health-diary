@@ -12,15 +12,11 @@ interface AnalyticsViewProps {
 }
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ milestones, workedOutDays }) => {
-  // 실제 앱에 기록된 이번 달 출석 일수 연동
-  const currentMonthDays = 31; // 간단히 31일로 가정
+  const currentMonthDays = 31; 
   const attendanceCount = workedOutDays.length;
-  // 퍼센트 계산
-  const attendanceRate = Math.round((attendanceCount / currentMonthDays) * 100);
+  const attendanceRate = Math.round((attendanceCount / currentMonthDays) * 100) || 0;
 
-  // 최근 볼륨 성장 추이는 앱 내부에서 누적해야 하지만, 
-  // 당장 앱 시작 시점에서는 데이터가 없으므로 공란으로 비워두는 게 맞습니다.
-  // (임시로 모두 0으로 비워두어 거짓 더미 데이터를 뺐습니다)
+  // 초기 상태에서는 차트 데이터도 무조건 비워둡니다 (앱 내 누적된 기록이 없으므로)
   const volumeData = [
     { label: '4주 전', value: 0 },
     { label: '3주 전', value: 0 },
@@ -60,7 +56,6 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ milestones, worked
           {volumeData.map((data, idx) => (
             <div key={idx} className="flex flex-col items-center flex-1 h-full">
               <div className="w-full flex flex-col justify-end h-full mb-2 bg-[#313540] rounded-t-md opacity-20">
-                {/* 데이터가 없으므로 비어있는 회색 막대만 표시 */}
               </div>
               <span className="text-[10px] font-bold text-gray-500">{data.label}</span>
             </div>
@@ -68,7 +63,6 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ milestones, worked
         </div>
       </div>
 
-      {/* 출석부를 캘린더가 아닌 꽉 차오르는 막대 그래프로 변경 */}
       <div className="bg-[#1c1f2a] border border-[#313540] rounded-3xl p-5 shadow-lg">
         <h3 className="font-bold text-sm text-white mb-1">이번 달 누적 출석률</h3>
         <p className="text-[10px] text-gray-400 mb-5">
