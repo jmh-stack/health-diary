@@ -1,0 +1,6 @@
+{
+  "name": "IronLog - 스마트 피트니스 & 영양 트래커",
+  "description": "고강도 트레이닝 및 근성장을 위한 올인원 루틴, 실시간 세트 기록, AI 맞춤 영양 식단 및 1RM 퍼포먼스 분석 앱",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
