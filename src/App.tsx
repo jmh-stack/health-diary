@@ -14,10 +14,11 @@ import { ProfileModal } from './components/ProfileModal';
 import { HomeView } from './views/HomeView';
 import { WorkoutView } from './views/WorkoutView';
 import { AnalyticsView } from './views/AnalyticsView';
-import { DietView } from './views/DietView';
 import { RoutineView } from './views/RoutineView';
+// 식단 뷰 제거 완료
 
 export interface UserProfile {
+  name?: string;
   gender: 'male' | 'female' | '';
   height?: number | '';
   weight?: number | '';
@@ -38,24 +39,22 @@ export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    gender: '',
-    height: '',
-    weight: '',
-    skeletalMuscle: '',
-    bodyFatPercentage: '',
-    dailyProteinGoal: ''
+    name: '민우',
+    gender: 'male',
+    height: 178,
+    weight: 74.5,
   });
 
   const [milestones, setMilestones] = useState<MilestoneStreak>({
-    currentStreakDays: 0,
-    weeklyGoalCompleted: 0,
+    currentStreakDays: 5,
+    weeklyGoalCompleted: 3,
     weeklyGoalTarget: 4
   });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab') as TabType;
-    if (tabParam && ['home', 'workout', 'analytics', 'diet', 'routine'].includes(tabParam)) {
+    if (tabParam && ['home', 'workout', 'analytics', 'routine'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, []);
@@ -76,7 +75,6 @@ export default function App() {
             onStartRoutine={() => setActiveTab('workout')}
           />
         )}
-
         {activeTab === 'workout' && (
           <WorkoutView
             onCompleteWorkout={() => {
@@ -89,14 +87,8 @@ export default function App() {
             }}
           />
         )}
-
         {activeTab === 'analytics' && <AnalyticsView milestones={milestones} />}
-
-        {activeTab === 'diet' && <DietView userProfile={userProfile} />}
-
-        {activeTab === 'routine' && (
-          <RoutineView onStartRoutine={() => setActiveTab('workout')} />
-        )}
+        {activeTab === 'routine' && <RoutineView onStartRoutine={() => setActiveTab('workout')} />}
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab)} />
@@ -108,6 +100,11 @@ export default function App() {
 
       <ProfileModal
         isOpen={isProfileOpen}
+        userProfile={userProfile}
+        onSave={(updated) => {
+          setUserProfile((prev) => ({ ...prev, ...updated }));
+          setIsProfileOpen(false);
+        }}
         onClose={() => setIsProfileOpen(false)}
       />
     </div>
