@@ -26,45 +26,72 @@ export interface MilestoneStreak {
   currentStreakDays: number;
 }
 
+// 💡 [핵심 복구 로직] 과거에 저장된 데이터(v3, v2, 초기버전)를 찾아내어 영구 키(prod)로 끌어오는 함수
+function loadData<T>(prodKey: string, oldKeys: string[], defaultValue: T): T {
+  try {
+    const savedProd = localStorage.getItem(prodKey);
+    if (savedProd) return JSON.parse(savedProd);
+
+    // 예전 이름표로 저장된 기록이 있는지 하나씩 확인
+    for (const oldKey of oldKeys) {
+      const savedOld = localStorage.getItem(oldKey);
+      if (savedOld) {
+        localStorage.setItem(prodKey, savedOld); // 찾았다면 영구 저장소(prod)로 복원 완료!
+        return JSON.parse(savedOld);
+      }
+    }
+  } catch (e) {
+    console.error('Data parsing error', e);
+  }
+  return defaultValue;
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // 영구 저장소(prod) 키 적용: 이후 코드 업데이트 시에도 이 키들은 절대 변경하지 않아 데이터가 영구 보존됩니다.
-  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('ironlog_prod_profile');
-    if (saved) return JSON.parse(saved);
-    return { name: '', gender: '', height: '', weight: '' }; 
-  });
+  // 1. 프로필 자동 복원 및 로드
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => 
+    loadData('ironlog_prod_profile', ['ironlog_profile_v3', 'ironlog_profile_v2', 'ironlog_profile'], { name: '', gender: '', height: '', weight: '' })
+  );
 
-  const [milestones, setMilestones] = useState<MilestoneStreak>(() => {
-    const saved = localStorage.getItem('ironlog_prod_milestones');
-    if (saved) return JSON.parse(saved);
-    return { currentStreakDays: 0 };
-  });
+  // 2. 통계 자동 복원 및 로드
+  const [milestones, setMilestones] = useState<MilestoneStreak>(() => 
+    loadData('ironlog_prod_milestones', ['ironlog_milestones_v3', 'ironlog_milestones_v2', 'ironlog_milestones'], { currentStreakDays: 0 })
+  );
 
-  const [currentWorkout, setCurrentWorkout] = useState<WorkoutItem[]>(() => {
-    const saved = localStorage.getItem('ironlog_prod_current_workout');
-    if (saved) return JSON.parse(saved);
-    return [];
-  });
+  // 3. 현재 운동 기록 복원
+  const [currentWorkout, setCurrentWorkout] = useState<WorkoutItem[]>(() => 
+    loadData('ironlog_prod_current_workout', ['ironlog_current_workout_v3', 'ironlog_current_workout_v2', 'ironlog_current_workout'], [])
+  );
 
-  const [workedOutDates, setWorkedOutDates] = useState<number[]>(() => {
-    const saved = localStorage.getItem('ironlog_prod_workout_dates');
-    if (saved) return JSON.parse(saved);
-    return [];
-  });
+  // 4. 운동 출석부 날짜 복원
+  const [workedOutDates, setWorkedOutDates] = useState<number[]>(() => 
+    loadData('ironlog_prod_workout_dates', ['ironlog_workout_dates_v3', 'ironlog_workout_dates_v2', 'ironlog_workout_dates'], [])
+  );
 
-  const [routines, setRoutines] = useState<RoutineGroup[]>(() => {
-    const saved = localStorage.getItem('ironlog_prod_routines');
-    if (saved) return JSON.parse(saved);
-    return [];
-  });
+  // 5. 나만의 루틴 목록 자동 복원!
+  const [routines, setRoutines] = useState<RoutineGroup[]>(() => 
+    loadData('ironlog_prod_routines', ['ironlog_routines_v3', 'ironlog_routines'], [])
+  );
 
+  // 6. 메인 루틴 ID 복원
   const [mainRoutineId, setMainRoutineId] = useState<string>(() => {
-    return localStorage.getItem('ironlog_prod_main_routine_id') || '';
+    const savedProd = localStorage.getItem('ironlog_prod_main_routine_id');
+    if (savedProd) return savedProd;
+    
+    const oldKeys = ['ironlog_main_routine_id_v3', 'ironlog_main_routine_id'];
+    for (const oldKey of oldKeys) {
+      const savedOld = localStorage.getItem(oldKey);
+      if (savedOld) {
+        localStorage.setItem('ironlog_prod_main_routine_id', savedOld);
+        return savedOld;
+      }
+    }
+    return '';
   });
 
+  // 데이터 변경 시 이제 오직 'prod' (영구) 키에만 저장합니다.
   useEffect(() => { localStorage.setItem('ironlog_prod_profile', JSON.stringify(userProfile)); }, [userProfile]);
   useEffect(() => { localStorage.setItem('ironlog_prod_milestones', JSON.stringify(milestones)); }, [milestones]);
   useEffect(() => { localStorage.setItem('ironlog_prod_current_workout', JSON.stringify(currentWorkout)); }, [currentWorkout]);
